@@ -10,10 +10,56 @@ class Game {
 
         this.players = {}; // Store player states
         
+        // Audio Context for sounds
+        this.audioCtx = null;
+        
         this.initDOMElements();
         this.attachEvents();
         
-        console.log("Game initialized");
+        console.log("Game initialized with sounds");
+    }
+
+    initAudio() {
+        if (!this.audioCtx) {
+            this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    }
+
+    playSound(freq, type, duration, volume = 0.1) {
+        this.initAudio();
+        const oscillator = this.audioCtx.createOscillator();
+        const gainNode = this.audioCtx.createGain();
+
+        oscillator.type = type;
+        oscillator.frequency.setValueAtTime(freq, this.audioCtx.currentTime);
+        
+        gainNode.gain.setValueAtTime(volume, this.audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioCtx.currentTime + duration);
+
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioCtx.destination);
+
+        oscillator.start();
+        oscillator.stop(this.audioCtx.currentTime + duration);
+    }
+
+    playSuccessSound() {
+        this.playSound(880, 'sine', 0.2); // Pleasant high beep
+    }
+
+    playFailureSound() {
+        this.playSound(150, 'sawtooth', 0.3, 0.05); // Low buzz
+    }
+
+    playWinSound() {
+        this.initAudio();
+        const now = this.audioCtx.currentTime;
+        const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+        notes.forEach((freq, i) => {
+            setTimeout(() => {
+                this.playSound(freq, 'sine', 0.4, 0.1);
+            }, i * 150);
+        });
     }
 
     initDOMElements() {
@@ -29,9 +75,11 @@ class Game {
     }
 
     attachEvents() {
-        // Use event delegation for better performance and robustness
         document.addEventListener('click', (e) => {
             const target = e.target;
+            
+            // Resume AudioContext on first click (browser policy)
+            this.initAudio();
 
             // Start Button
             if (target.id === 'start-btn' || target.closest('#start-btn')) {
@@ -82,9 +130,7 @@ class Game {
         this.isGameOver = false;
         this.players = {};
         
-        // Initialize active players
         for (let i = 1; i <= 3; i++) {
-            const zone = document.getElementById(`player-${i}`);
             if (i <= this.playerCount) {
                 this.players[i] = {
                     score: 0,
@@ -164,6 +210,7 @@ class Game {
     }
 
     handleSuccess(playerId) {
+        this.playSuccessSound();
         const p = this.players[playerId];
         p.score++;
         document.getElementById(`score-${playerId}`).innerText = p.score;
@@ -177,6 +224,7 @@ class Game {
     }
 
     handleFailure(playerId) {
+        this.playFailureSound();
         const zone = document.getElementById(`player-${playerId}`);
         zone.classList.add('shake');
         setTimeout(() => zone.classList.remove('shake'), 400);
@@ -221,6 +269,7 @@ class Game {
 
     endGame(message, color) {
         this.isGameOver = true;
+        this.playWinSound();
         this.el.title.innerText = message;
         this.el.overlay.classList.remove('hidden');
         this.el.exitBtn.classList.add('hidden');
