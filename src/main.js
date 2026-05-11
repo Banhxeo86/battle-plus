@@ -1,5 +1,5 @@
-import gsap from 'gsap';
-import confetti from 'canvas-confetti';
+import gsap from 'https://esm.sh/gsap';
+import confetti from 'https://esm.sh/canvas-confetti';
 
 class Game {
     constructor() {
@@ -8,10 +8,12 @@ class Game {
         this.winningThreshold = 10;
         this.isGameOver = false;
 
-        this.players = {}; // Store player states: { 1: { score, q, input }, 2: ... }
+        this.players = {}; // Store player states
         
         this.initDOMElements();
         this.attachEvents();
+        
+        console.log("Game initialized");
     }
 
     initDOMElements() {
@@ -27,54 +29,72 @@ class Game {
     }
 
     attachEvents() {
-        this.el.startBtn.addEventListener('click', () => this.start());
-        this.el.exitBtn.addEventListener('click', () => this.exit());
+        // Use event delegation for better performance and robustness
+        document.addEventListener('click', (e) => {
+            const target = e.target;
 
-        // Player Count Selection
-        this.el.playerCountSelect.querySelectorAll('.toggle-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+            // Start Button
+            if (target.id === 'start-btn' || target.closest('#start-btn')) {
+                this.start();
+                return;
+            }
+
+            // Exit Button
+            if (target.id === 'exit-btn' || target.closest('#exit-btn')) {
+                this.exit();
+                return;
+            }
+
+            // Player Count Selection
+            const playerCountBtn = target.closest('#player-count-select .toggle-btn');
+            if (playerCountBtn) {
                 this.el.playerCountSelect.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                this.playerCount = parseInt(e.target.dataset.count);
+                playerCountBtn.classList.add('active');
+                this.playerCount = parseInt(playerCountBtn.dataset.count);
                 this.el.app.className = `players-${this.playerCount}`;
-            });
-        });
+                return;
+            }
 
-        // Difficulty Selection
-        this.el.difficultySelect.querySelectorAll('.toggle-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+            // Difficulty Selection
+            const difficultyBtn = target.closest('#difficulty-select .toggle-btn');
+            if (difficultyBtn) {
                 this.el.difficultySelect.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                this.difficultyLevel = parseInt(e.target.dataset.level);
-            });
-        });
+                difficultyBtn.classList.add('active');
+                this.difficultyLevel = parseInt(difficultyBtn.dataset.level);
+                return;
+            }
 
-        // Universal Keypad Listener (using event delegation for player-specific keypads)
-        document.querySelectorAll('.keypad').forEach(keypad => {
-            const playerId = parseInt(keypad.dataset.player);
-            keypad.querySelectorAll('.key').forEach(keyBtn => {
-                keyBtn.addEventListener('click', () => {
-                    this.handleKey(playerId, keyBtn.innerText);
-                });
-            });
+            // Keypad
+            const keyBtn = target.closest('.key');
+            if (keyBtn) {
+                const keypad = keyBtn.closest('.keypad');
+                if (keypad) {
+                    const playerId = parseInt(keypad.dataset.player);
+                    this.handleKey(playerId, keyBtn.innerText.trim());
+                }
+                return;
+            }
         });
     }
 
     start() {
+        console.log("Starting game with", this.playerCount, "players, level", this.difficultyLevel);
         this.isGameOver = false;
         this.players = {};
         
         // Initialize active players
-        for (let i = 1; i <= this.playerCount; i++) {
-            this.players[i] = {
-                score: 0,
-                q: { a: 0, b: 0, ans: 0 },
-                input: ""
-            };
-            // Reset UI
-            document.getElementById(`score-${i}`).innerText = "0";
-            document.getElementById(`stack-${i}`).innerHTML = "";
-            this.generateQuestion(i);
+        for (let i = 1; i <= 3; i++) {
+            const zone = document.getElementById(`player-${i}`);
+            if (i <= this.playerCount) {
+                this.players[i] = {
+                    score: 0,
+                    q: { a: 0, b: 0, ans: 0 },
+                    input: ""
+                };
+                document.getElementById(`score-${i}`).innerText = "0";
+                document.getElementById(`stack-${i}`).innerHTML = "";
+                this.generateQuestion(i);
+            }
         }
 
         this.el.overlay.classList.add('hidden');
@@ -86,24 +106,23 @@ class Game {
         this.el.overlay.classList.remove('hidden');
         this.el.exitBtn.classList.add('hidden');
         this.el.title.innerText = "덧셈 배틀!";
-        document.getElementById('start-btn').innerText = "시작하기";
+        this.el.startBtn.innerText = "시작하기";
     }
 
     generateQuestion(playerId) {
         let a, b;
         switch (this.difficultyLevel) {
-            case 1: // 한자리 + 한자리 (1-9)
+            case 1:
                 a = Math.floor(Math.random() * 9) + 1;
                 b = Math.floor(Math.random() * 9) + 1;
                 break;
-            case 2: // 십몇 (10-19) + 한자리 (1-9)
+            case 2:
                 a = Math.floor(Math.random() * 10) + 10;
                 b = Math.floor(Math.random() * 9) + 1;
                 break;
-            case 3: // 몇십몇 + 몇십몇 (합이 50 이하)
-                // Generate a sum between 20 and 50
+            case 3:
                 const sum = Math.floor(Math.random() * 31) + 20; 
-                a = Math.floor(Math.random() * (sum - 11)) + 10; // Ensure a is at least 10
+                a = Math.floor(Math.random() * (sum - 11)) + 10;
                 b = sum - a;
                 break;
         }
@@ -135,6 +154,8 @@ class Game {
 
     checkAnswer(playerId) {
         const p = this.players[playerId];
+        if (p.input === "") return;
+        
         if (parseInt(p.input) === p.q.ans) {
             this.handleSuccess(playerId);
         } else {
@@ -182,7 +203,9 @@ class Game {
         if (stack.lastElementChild) {
             gsap.to(stack.lastElementChild, { 
                 scale: 0, opacity: 0, duration: 0.3, 
-                onComplete: () => stack.removeChild(stack.lastElementChild) 
+                onComplete: () => {
+                    if (stack.lastElementChild) stack.removeChild(stack.lastElementChild);
+                }
             });
         }
     }
@@ -201,7 +224,7 @@ class Game {
         this.el.title.innerText = message;
         this.el.overlay.classList.remove('hidden');
         this.el.exitBtn.classList.add('hidden');
-        document.getElementById('start-btn').innerText = "다시 하기";
+        this.el.startBtn.innerText = "다시 하기";
         
         confetti({
             particleCount: 150, spread: 70, origin: { y: 0.6 },
@@ -210,4 +233,10 @@ class Game {
     }
 }
 
-new Game();
+// Ensure DOM is fully loaded
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => new Game());
+} else {
+    new Game();
+}
+
