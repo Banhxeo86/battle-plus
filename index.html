@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>덧셈 배틀!</title>
+    <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+    <div id="app" class="players-2">
+        <!-- Exit Button -->
+        <button id="exit-btn" class="exit-btn hidden">종료</button>
+
+        <!-- Player Zones Container -->
+        <div id="players-container">
+            <!-- Player 1 (Blue) -->
+            <section class="player-zone blue-team" id="player-1">
+                <div class="player-content">
+                    <div class="score-board">
+                        <span class="team-name">청팀</span>
+                        <span class="score" id="score-1">0</span>
+                    </div>
+                    <div class="question-container">
+                        <div class="question" id="q-1">15 + 7 =</div>
+                        <div class="answer-display" id="a-1">_</div>
+                    </div>
+                    <div class="keypad" data-player="1">
+                        <button class="key">1</button><button class="key">2</button><button class="key">3</button>
+                        <button class="key">4</button><button class="key">5</button><button class="key">6</button>
+                        <button class="key">7</button><button class="key">8</button><button class="key">9</button>
+                        <button class="key clear">C</button><button class="key">0</button><button class="key enter">제출</button>
+                    </div>
+                </div>
+                <div class="stack-area">
+                    <div class="stack blue-stack" id="stack-1"></div>
+                </div>
+            </section>
+
+            <!-- Player 2 (Red) -->
+            <section class="player-zone red-team" id="player-2">
+                <div class="player-content">
+                    <div class="score-board">
+                        <span class="team-name">홍팀</span>
+                        <span class="score" id="score-2">0</span>
+                    </div>
+                    <div class="question-container">
+                        <div class="question" id="q-2">12 + 9 =</div>
+                        <div class="answer-display" id="a-2">_</div>
+                    </div>
+                    <div class="keypad" data-player="2">
+                        <button class="key">1</button><button class="key">2</button><button class="key">3</button>
+                        <button class="key">4</button><button class="key">5</button><button class="key">6</button>
+                        <button class="key">7</button><button class="key">8</button><button class="key">9</button>
+                        <button class="key clear">C</button><button class="key">0</button><button class="key enter">제출</button>
+                    </div>
+                </div>
+                <div class="stack-area">
+                    <div class="stack red-stack" id="stack-2"></div>
+                </div>
+            </section>
+
+            <!-- Player 3 (Green) -->
+            <section class="player-zone green-team" id="player-3">
+                <div class="player-content">
+                    <div class="score-board">
+                        <span class="team-name">녹팀</span>
+                        <span class="score" id="score-3">0</span>
+                    </div>
+                    <div class="question-container">
+                        <div class="question" id="q-3">8 + 6 =</div>
+                        <div class="answer-display" id="a-3">_</div>
+                    </div>
+                    <div class="keypad" data-player="3">
+                        <button class="key">1</button><button class="key">2</button><button class="key">3</button>
+                        <button class="key">4</button><button class="key">5</button><button class="key">6</button>
+                        <button class="key">7</button><button class="key">8</button><button class="key">9</button>
+                        <button class="key clear">C</button><button class="key">0</button><button class="key enter">제출</button>
+                    </div>
+                </div>
+                <div class="stack-area">
+                    <div class="stack green-stack" id="stack-3"></div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Start/Game Over Overlay -->
+        <div id="overlay" class="overlay">
+            <div class="overlay-content">
+                <h1 id="overlay-title">덧셈 배틀!</h1>
+                
+                <div class="setting-group">
+                    <p class="setting-label">인원 선택</p>
+                    <div class="toggle-group" id="player-count-select">
+                        <button class="toggle-btn active" data-count="2">2인</button>
+                        <button class="toggle-btn" data-count="3">3인</button>
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <p class="setting-label">난이도 선택</p>
+                    <div class="toggle-group" id="difficulty-select">
+                        <button class="toggle-btn active" data-level="1">1단계</button>
+                        <button class="toggle-btn" data-level="2">2단계</button>
+                        <button class="toggle-btn" data-level="3">3단계</button>
+                    </div>
+                </div>
+
+                <p class="instruction">정답을 맞히면 블록이 쌓입니다!<br>먼저 10개를 쌓는 팀이 승리!</p>
+                <button id="start-btn" class="start-btn">시작하기</button>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
